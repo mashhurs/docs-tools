@@ -6,3 +6,4 @@ gem "octokit", "~>4", "<= 4.21.0" # https://github.com/octokit/octokit.rb/issues
 gem "faraday", "~> 0.9"
 gem "pmap"
 gem "pry"
+gem "asciidoctor", "~> 2.0"   # Used by the docs build
