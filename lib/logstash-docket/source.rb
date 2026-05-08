@@ -83,7 +83,22 @@ module LogstashDocket
       def release_tags
         @tags ||= begin
           fail('octokit github client required') if @octokit.nil?
-          Set.new(@octokit.tags("#{org}/#{repo}").map(&:name).select{|t| t[%r{\Av\d+\.\d+\.\d+}] })
+
+          # NOTE: We deliberately avoid Octokit's `auto_paginate` (used by
+          # `@octokit.tags`) here. `auto_paginate` follows the `Link: rel=next`
+          # auto-paginate fetchs only 100 tags, manually paginate using `@octokit.get`
+          per_page = 100
+          all_tags = []
+          page = 1
+          loop do
+            page_tags = @octokit.get("repos/#{org}/#{repo}/tags", :page => page, :per_page => per_page)
+            break if page_tags.nil? || page_tags.empty?
+            all_tags.concat(page_tags)
+            break if page_tags.size < per_page
+            page += 1
+          end
+
+          Set.new(all_tags.map(&:name).select{|t| t[%r{\Av\d+\.\d+\.\d+}] })
         end
       end
 
